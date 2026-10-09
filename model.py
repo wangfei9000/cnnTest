@@ -5,7 +5,7 @@ from torch import nn
 
 
 class ConvBlock(nn.Sequential):
-    """卷积 + 批归一化 + ReLU，可选 2 倍下采样。"""
+    """卷积 + 组归一化 + ReLU，可选 2 倍下采样。"""
 
     def __init__(self, in_channels: int, out_channels: int, downsample: bool = True):
         layers = [
@@ -14,10 +14,11 @@ class ConvBlock(nn.Sequential):
                 out_channels,
                 kernel_size=3,
                 padding=1,
-                # 后接 BatchNorm 时不需要卷积层再学习一份偏置。
+                # 后接归一化层时不需要卷积层再学习一份偏置。
                 bias=False,
             ),
-            nn.BatchNorm2d(out_channels),
+            # GroupNorm 不依赖批次统计量，比 BatchNorm 更适合当前的极小数据集。
+            nn.GroupNorm(num_groups=min(8, out_channels), num_channels=out_channels),
             nn.ReLU(inplace=True),
         ]
         if downsample:

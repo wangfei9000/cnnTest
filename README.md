@@ -5,7 +5,7 @@
 ```text
 输入图像 [N, 3, H, W]
     ↓
-4 个卷积块（Conv + BatchNorm + ReLU，其中前三层下采样）
+4 个卷积块（Conv + GroupNorm + ReLU，其中前三层下采样）
     ↓
 特征图 [N, 256, H/8, W/8]
     ↓

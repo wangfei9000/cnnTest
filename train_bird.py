@@ -61,7 +61,7 @@ def make_loaders(data_dir: Path, batch_size: int):
 
 def evaluate(model, loader, criterion, device):
     """在不记录梯度的情况下计算整个数据集的平均损失和准确率。"""
-    # eval() 会冻结 BatchNorm 的统计量，并关闭可能存在的 Dropout。
+    # eval() 会关闭模型中可能存在的 Dropout 等仅训练时启用的行为。
     model.eval()
     total_loss = correct = count = 0
     with torch.no_grad():
@@ -90,6 +90,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     best_accuracy = 0.0
+    best_loss = float("inf")
 
     print(f"设备: {device}; 类别: {class_to_idx}")
     print(f"训练图片: {len(train_loader.dataset)}; 验证图片: {len(val_loader.dataset)}")
@@ -119,9 +120,14 @@ def main():
             f"val loss {val_loss:.4f}, acc {val_accuracy:.2%}"
         )
 
-        # 只保存验证集表现最好的权重，避免最后一轮过拟合后覆盖更好的模型。
-        if val_accuracy > best_accuracy:
+        # 准确率优先；准确率相同时保留损失更低、预测更有把握的模型。
+        # 这也避免验证集太小时准确率长期不变，导致一直使用第 1 轮权重。
+        is_better = val_accuracy > best_accuracy or (
+            val_accuracy == best_accuracy and val_loss < best_loss
+        )
+        if is_better:
             best_accuracy = val_accuracy
+            best_loss = val_loss
             torch.save(
                 {
                     "model_state": model.state_dict(),
