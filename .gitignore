@@ -1,3 +1,9 @@
 .venv/
 .idea/
 __pycache__/
+*.py[cod]
+.DS_Store
+
+# 训练生成的模型权重
+*.pt
+*.pth
