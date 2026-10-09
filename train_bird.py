@@ -86,6 +86,8 @@ def main():
 
     device = get_device()
     train_loader, val_loader, class_to_idx = make_loaders(args.data, args.batch_size)
+    idx_to_class = {index: name for name, index in class_to_idx.items()}
+    bird_index = class_to_idx["bird"]
     model = SimpleCNN(num_classes=2).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -96,10 +98,12 @@ def main():
     print(f"训练图片: {len(train_loader.dataset)}; 验证图片: {len(val_loader.dataset)}")
 
     for epoch in range(1, args.epochs + 1):
+        print(f"\n===== Epoch {epoch:02d}/{args.epochs} =====")
         # evaluate() 会切到 eval 模式，所以每个新 epoch 都要显式切回训练模式。
         model.train()
         train_loss = train_correct = train_count = 0
-        for images, labels in train_loader:
+        total_batches = len(train_loader)
+        for batch_index, (images, labels) in enumerate(train_loader, start=1):
             images, labels = images.to(device), labels.to(device)
             # PyTorch 默认累积梯度，每个批次反向传播前必须清空上一次的梯度。
             optimizer.zero_grad()
@@ -108,13 +112,34 @@ def main():
             loss.backward()
             optimizer.step()
 
+            # detach() 后的结果只用于展示，不再参与反向传播。
+            probabilities = torch.softmax(logits.detach(), dim=1)
+            predictions = probabilities.argmax(dim=1)
+            batch_correct = (predictions == labels).sum().item()
+            true_names = [idx_to_class[index] for index in labels.tolist()]
+            predicted_names = [idx_to_class[index] for index in predictions.tolist()]
+            bird_probabilities = probabilities[:, bird_index].tolist()
+
+            print(f"批次 {batch_index:02d}/{total_batches}")
+            for sample_index, (true_name, predicted_name, bird_probability) in enumerate(
+                zip(true_names, predicted_names, bird_probabilities), start=1
+            ):
+                print(
+                    f"  样本 {sample_index:02d}: 真实={true_name:<8} "
+                    f"预测={predicted_name:<8} 鸟概率={bird_probability:.2%}"
+                )
+            print(
+                f"  批次结果: loss={loss.item():.4f}, "
+                f"acc={batch_correct / labels.size(0):.2%}"
+            )
+
             train_loss += loss.item() * labels.size(0)
-            train_correct += (logits.argmax(1) == labels).sum().item()
+            train_correct += batch_correct
             train_count += labels.size(0)
 
         val_loss, val_accuracy = evaluate(model, val_loader, criterion, device)
         print(
-            f"Epoch {epoch:02d}/{args.epochs} | "
+            f"轮次汇总 {epoch:02d}/{args.epochs} | "
             f"train loss {train_loss / train_count:.4f}, "
             f"acc {train_correct / train_count:.2%} | "
             f"val loss {val_loss:.4f}, acc {val_accuracy:.2%}"
