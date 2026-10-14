@@ -36,26 +36,26 @@ torch.softmax(input, dim=...)
 
 ## 2. Softmax 公式
 
-假设模型输出一个包含 \(K\) 个分数的向量：
+假设模型输出一个包含 $K$ 个分数的向量：
 
-\[
+$$
 \mathbf{x}=(x_1,x_2,\ldots,x_K)
-\]
+$$
 
-Softmax 将第 \(i\) 个分数转换为：
+Softmax 将第 $i$ 个分数转换为：
 
-\[
+$$
 p_i=\operatorname{Softmax}(x_i)
 =\frac{e^{x_i}}{\sum_{j=1}^{K}e^{x_j}}
-\]
+$$
 
 其中：
 
-- \(x_i\)：第 \(i\) 个类别的原始分数，即 logit；
-- \(e\)：自然常数，约等于 2.71828；
-- \(e^{x_i}\)：第 \(i\) 个类别的正权重；
-- \(\sum_{j=1}^{K}e^{x_j}\)：所有类别权重的总和；
-- \(p_i\)：第 \(i\) 个类别经过归一化后的概率。
+- $x_i$：第 $i$ 个类别的原始分数，即 logit；
+- $e$：自然常数，约等于 2.71828；
+- $e^{x_i}$：第 $i$ 个类别的正权重；
+- $\sum_{j=1}^{K}e^{x_j}$：所有类别权重的总和；
+- $p_i$：第 $i$ 个类别经过归一化后的概率。
 
 这个公式可以分为两步理解：
 
@@ -68,58 +68,58 @@ p_i=\operatorname{Softmax}(x_i)
 
 给定 logits：
 
-\[
+$$
 \mathbf{x}=(1,2,3)
-\]
+$$
 
 ### 3.1 计算指数
 
-\[
+$$
 e^1\approx2.718
-\]
+$$
 
-\[
+$$
 e^2\approx7.389
-\]
+$$
 
-\[
+$$
 e^3\approx20.086
-\]
+$$
 
 指数值之和为：
 
-\[
+$$
 2.718+7.389+20.086=30.193
-\]
+$$
 
 ### 3.2 分别归一化
 
 第一个类别：
 
-\[
+$$
 p_1=\frac{e^1}{e^1+e^2+e^3}
 \approx\frac{2.718}{30.193}
 \approx0.0900
-\]
+$$
 
 第二个类别：
 
-\[
+$$
 p_2\approx\frac{7.389}{30.193}\approx0.2447
-\]
+$$
 
 第三个类别：
 
-\[
+$$
 p_3\approx\frac{20.086}{30.193}\approx0.6652
-\]
+$$
 
 最终结果为：
 
-\[
+$$
 \operatorname{Softmax}(1,2,3)
 \approx(0.0900,0.2447,0.6652)
-\]
+$$
 
 可以解释为：模型认为三个类别的概率分别约为 9.00%、24.47% 和 66.52%。
 
@@ -131,15 +131,15 @@ p_3\approx\frac{20.086}{30.193}\approx0.6652
 
 指数函数对任何有限实数都有：
 
-\[
+$$
 e^{x_i}>0
-\]
+$$
 
 分母也是正数，所以：
 
-\[
+$$
 p_i>0
-\]
+$$
 
 因此 Softmax 不会产生负概率。对于有限输入，数学上的输出严格位于 0 和 1 之间，但在浮点计算中，特别小的概率可能因为精度限制显示为 0。
 
@@ -147,19 +147,19 @@ p_i>0
 
 将所有概率相加：
 
-\[
+$$
 \sum_{i=1}^{K}p_i
 =\sum_{i=1}^{K}\frac{e^{x_i}}{\sum_{j=1}^{K}e^{x_j}}
-\]
+$$
 
 由于每一项的分母相同，可以写为：
 
-\[
+$$
 \sum_{i=1}^{K}p_i
 =\frac{\sum_{i=1}^{K}e^{x_i}}
 {\sum_{j=1}^{K}e^{x_j}}
 =1
-\]
+$$
 
 因此 Softmax 的输出满足概率分布的基本条件。
 
@@ -171,21 +171,21 @@ p_i>0
 
 指数函数是严格递增函数。如果：
 
-\[
+$$
 x_a>x_b
-\]
+$$
 
 那么：
 
-\[
+$$
 e^{x_a}>e^{x_b}
-\]
+$$
 
 由于各类别使用相同的分母，因此：
 
-\[
+$$
 p_a>p_b
-\]
+$$
 
 Softmax 不会改变类别排名。Logit 最大的类别，经过 Softmax 后仍然拥有最大概率。因此：
 
@@ -205,44 +205,44 @@ torch.softmax(logits, dim=1).argmax(dim=1)
 
 指数函数会放大 logits 之间的差距。两个类别的概率之比为：
 
-\[
+$$
 \frac{p_a}{p_b}
 =\frac{e^{x_a}}{e^{x_b}}
 =e^{x_a-x_b}
-\]
+$$
 
 因此，概率比只由两个 logits 的差决定。
 
 例如，当：
 
-\[
+$$
 x_a-x_b=2
-\]
+$$
 
 有：
 
-\[
+$$
 \frac{p_a}{p_b}=e^2\approx7.39
-\]
+$$
 
-也就是说，类别 \(a\) 的概率大约是类别 \(b\) 的 7.39 倍。
+也就是说，类别 $a$ 的概率大约是类别 $b$ 的 7.39 倍。
 
 ### 5.3 只关心相对差值
 
-给所有 logits 同时加上同一个常数 \(c\)，Softmax 结果不会改变：
+给所有 logits 同时加上同一个常数 $c$，Softmax 结果不会改变：
 
-\[
+$$
 \frac{e^{x_i+c}}{\sum_j e^{x_j+c}}
 =\frac{e^{x_i}e^c}{e^c\sum_j e^{x_j}}
 =\frac{e^{x_i}}{\sum_j e^{x_j}}
-\]
+$$
 
 因此：
 
-\[
+$$
 \operatorname{Softmax}(\mathbf{x}+c)
 =\operatorname{Softmax}(\mathbf{x})
-\]
+$$
 
 例如：
 
@@ -268,27 +268,27 @@ Softmax 的每个输出都依赖所有输入。某一个类别的 logit 增大�
 
 ## 6. 数值稳定性
 
-如果直接计算 \(e^{x_i}\)，当 logit 很大时可能发生浮点数溢出。例如，\(e^{1000}\) 大到无法用常见浮点类型表示。
+如果直接计算 $e^{x_i}$，当 logit 很大时可能发生浮点数溢出。例如，$e^{1000}$ 大到无法用常见浮点类型表示。
 
 利用“同时加减常数不改变结果”的性质，可以先减去最大 logit：
 
-\[
+$$
 m=\max_j x_j
-\]
+$$
 
 再计算：
 
-\[
+$$
 p_i=\frac{e^{x_i-m}}{\sum_j e^{x_j-m}}
-\]
+$$
 
 例如：
 
-\[
+$$
 (1000,1001,1002)-(1002,1002,1002)=(-2,-1,0)
-\]
+$$
 
-于是只需要计算 \(e^{-2}\)、\(e^{-1}\) 和 \(e^0\)，避免计算巨大的指数。PyTorch 会在内部使用数值稳定的实现，通常不需要手动减最大值。
+于是只需要计算 $e^{-2}$、$e^{-1}$ 和 $e^0$，避免计算巨大的指数。PyTorch 会在内部使用数值稳定的实现，通常不需要手动减最大值。
 
 当需要对数概率时，应直接使用 `torch.log_softmax` 或 `nn.LogSoftmax`，而不是先计算 Softmax 再取对数：
 
@@ -378,10 +378,10 @@ predictions = probs.argmax(dim=-1)     # 概率最高的类别
 
 注意力机制先计算 query 与 key 的相似度分数，然后使用 Softmax 将这些分数转换为注意力权重：
 
-\[
+$$
 \operatorname{Attention}(Q,K,V)
 =\operatorname{Softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-\]
+$$
 
 Softmax 使每个 query 对所有 key 的注意力权重之和为 1，再用这些权重对 value 加权求和。
 
@@ -476,19 +476,19 @@ predictions = logits.argmax(dim=1)
 
 ## 11. 温度参数 Temperature
 
-Softmax 可以加入温度参数 \(T\)：
+Softmax 可以加入温度参数 $T$：
 
-\[
+$$
 p_i=\frac{e^{x_i/T}}{\sum_j e^{x_j/T}}
-\]
+$$
 
 温度控制概率分布的尖锐程度：
 
-- \(T=1\)：标准 Softmax；
-- \(T>1\)：缩小 logits 差距，分布更平滑、更均匀；
-- \(0<T<1\)：放大 logits 差距，分布更尖锐、更集中；
-- 当 \(T\to0^+\) 时，概率逐渐集中到最大 logit 对应的类别；
-- 当 \(T\to\infty\) 时，概率逐渐趋向均匀分布。
+- $T=1$：标准 Softmax；
+- $T>1$：缩小 logits 差距，分布更平滑、更均匀；
+- $0<T<1$：放大 logits 差距，分布更尖锐、更集中；
+- 当 $T\to0^+$ 时，概率逐渐集中到最大 logit 对应的类别；
+- 当 $T\to\infty$ 时，概率逐渐趋向均匀分布。
 
 PyTorch 示例：
 
@@ -505,28 +505,28 @@ probs = torch.softmax(logits / temperature, dim=-1)
 
 Softmax 是可微函数，因此可以参与神经网络的反向传播。其偏导数为：
 
-\[
+$$
 \frac{\partial p_i}{\partial x_j}
 =p_i(\delta_{ij}-p_j)
-\]
+$$
 
-其中，\(\delta_{ij}\) 是 Kronecker delta：当 \(i=j\) 时等于 1，否则等于 0。
+其中，$\delta_{ij}$ 是 Kronecker delta：当 $i=j$ 时等于 1，否则等于 0。
 
 分两种情况：
 
-当 \(i=j\) 时：
+当 $i=j$ 时：
 
-\[
+$$
 \frac{\partial p_i}{\partial x_i}=p_i(1-p_i)
-\]
+$$
 
 这通常为正，说明提高自身 logit 会提高自身概率。
 
-当 \(i\ne j\) 时：
+当 $i\ne j$ 时：
 
-\[
+$$
 \frac{\partial p_i}{\partial x_j}=-p_ip_j
-\]
+$$
 
 这通常为负，说明提高其他类别的 logit 会降低当前类别的概率。这也体现了 Softmax 中类别之间的竞争关系。
 
@@ -618,11 +618,11 @@ log_probs = torch.log_softmax(logits, dim=-1)
 
 Softmax 的核心公式是：
 
-\[
+$$
 \boxed{
 p_i=\frac{e^{x_i}}{\sum_j e^{x_j}}
 }
-\]
+$$
 
 它的主要作用可以概括为：
 
