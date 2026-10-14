@@ -45,7 +45,7 @@ $$
 Softmax 将第 $i$ 个分数转换为：
 
 $$
-p_i=\operatorname{Softmax}(x_i)
+p_i=\mathrm{Softmax}(x_i)
 =\frac{e^{x_i}}{\sum_{j=1}^{K}e^{x_j}}
 $$
 
@@ -117,7 +117,7 @@ $$
 最终结果为：
 
 $$
-\operatorname{Softmax}(1,2,3)
+\mathrm{Softmax}(1,2,3)
 \approx(0.0900,0.2447,0.6652)
 $$
 
@@ -240,8 +240,8 @@ $$
 因此：
 
 $$
-\operatorname{Softmax}(\mathbf{x}+c)
-=\operatorname{Softmax}(\mathbf{x})
+\mathrm{Softmax}(\mathbf{x}+c)
+=\mathrm{Softmax}(\mathbf{x})
 $$
 
 例如：
@@ -379,8 +379,8 @@ predictions = probs.argmax(dim=-1)     # 概率最高的类别
 注意力机制先计算 query 与 key 的相似度分数，然后使用 Softmax 将这些分数转换为注意力权重：
 
 $$
-\operatorname{Attention}(Q,K,V)
-=\operatorname{Softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\mathrm{Attention}(Q,K,V)
+=\mathrm{Softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 $$
 
 Softmax 使每个 query 对所有 key 的注意力权重之和为 1，再用这些权重对 value 加权求和。
